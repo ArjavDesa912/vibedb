@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  vibedb:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    image: vibedb:latest
+    container_name: vibedb
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - vibedb_data:/data
+    environment:
+      - VIBEDB_PORT=3000
+      - VIBEDB_HOST=0.0.0.0
+      - VIBEDB_PATH=/data/vibedb.db
+      # - RUST_LOG=debug # Uncomment for verbose logging
+
+volumes:
+  vibedb_data:

@@ -1,0 +1,56 @@
+[package]
+name = "vibedb"
+version = "1.0.0"
+edition = "2021"
+description = "🛸 VibeDB: A high-performance, Schema-Later database with automatic schema evolution"
+authors = ["Arjav"]
+license = "MIT"
+
+[dependencies]
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# Database - using rusqlite for better Windows compatibility
+rusqlite = { version = "0.31", features = ["bundled", "serde_json"] }
+tokio-rusqlite = "0.5"
+
+# Web framework
+axum = { version = "0.7", features = ["ws"] }
+axum-extra = { version = "0.9", features = ["typed-header"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Thread-safe schema caching
+dashmap = "5.5"
+
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# HTTP utilities
+tower = { version = "0.4", features = ["util"] }
+tower-http = { version = "0.5", features = ["cors", "trace", "fs"] }
+
+# Embedded assets for Vibe-Explorer
+rust-embed = "8.0"
+mime_guess = "2.0"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Utilities
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1.0", features = ["v4", "serde"] }
+futures = "0.3"
+async-stream = "0.3"
+
+# For SQL identifier validation
+regex = "1.10"
+lazy_static = "1.4"
+
+[[bin]]
+name = "vibedb"
+path = "src/main.rs"
