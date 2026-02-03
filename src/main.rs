@@ -33,6 +33,7 @@
 
 use std::env;
 use std::net::SocketAddr;
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use anyhow::Result;
@@ -40,8 +41,10 @@ use tracing::{info, Level};
 use tracing_subscriber::FmtSubscriber;
 
 use vibedb::api::{create_router, AppState};
+use vibedb::auth::{AuthService, AuthState, create_auth_router};
 use vibedb::db::VibeStore;
 use vibedb::explorer::create_explorer_router;
+use vibedb::storage::{StorageService, StorageState, create_storage_router};
 
 /// CLI arguments
 struct Args {
@@ -53,6 +56,10 @@ struct Args {
     in_memory: bool,
     /// Host to bind to
     host: String,
+    /// JWT secret for authentication
+    jwt_secret: Option<String>,
+    /// Storage path for file storage
+    storage_path: Option<String>,
 }
 
 impl Default for Args {
@@ -62,6 +69,8 @@ impl Default for Args {
             port: 3000,
             in_memory: false,
             host: "0.0.0.0".to_string(),
+            jwt_secret: None,
+            storage_path: None,
         }
     }
 }
@@ -116,6 +125,12 @@ impl Args {
         }
         if env::var("VIBEDB_MEMORY").is_ok() {
             args.in_memory = true;
+        }
+        if let Ok(secret) = env::var("VIBEDB_JWT_SECRET") {
+            args.jwt_secret = Some(secret);
+        }
+        if let Ok(storage) = env::var("VIBEDB_STORAGE_PATH") {
+            args.storage_path = Some(storage);
         }
 
         args
@@ -221,11 +236,31 @@ async fn main() -> Result<()> {
         Arc::new(VibeStore::new(&args.db_path).await?)
     };
 
-    // Create application state
-    let state = AppState::new(store);
+    // Initialize JWT secret (use provided or generate new)
+    let jwt_secret = args
+        .jwt_secret
+        .map(|s| s.into_bytes())
+        .unwrap_or_else(|| {
+            info!("🔑 Generating random JWT secret (set VIBEDB_JWT_SECRET for persistence)");
+            AuthService::generate_secret()
+        });
 
-    // Build router with API and Explorer
+    // Initialize Auth Service
+    let auth_service = AuthService::new(Arc::clone(&store), jwt_secret).await?;
+    let auth_state = AuthState { auth: auth_service };
+
+    // Initialize Storage Service
+    let storage_path = args.storage_path.map(PathBuf::from);
+    let storage_service = StorageService::new(Arc::clone(&store), storage_path).await?;
+    let storage_state = StorageState { storage: storage_service };
+
+    // Create application state
+    let state = AppState::new(Arc::clone(&store));
+
+    // Build router with API, Auth, Storage, and Explorer
     let app = create_router(state)
+        .nest("/v1/auth", create_auth_router(auth_state))
+        .nest("/v1/storage", create_storage_router(storage_state))
         .merge(create_explorer_router());
 
     // Print banner

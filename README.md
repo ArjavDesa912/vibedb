@@ -89,6 +89,8 @@ Open in browser: **http://localhost:3000/explore**
 
 ## 📊 API Endpoints
 
+### Core Data Operations
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `POST` | `/v1/push/:collection` | Insert a document |
@@ -102,6 +104,31 @@ Open in browser: **http://localhost:3000/explore**
 | `GET` | `/v1/stream/:collection` | SSE stream for real-time updates |
 | `GET` | `/explore` | Vibe-Explorer dashboard |
 | `GET` | `/health` | Health check |
+
+### 🔐 Authentication
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `POST` | `/v1/auth/signup` | Register new user | No |
+| `POST` | `/v1/auth/login` | Get JWT tokens | No |
+| `POST` | `/v1/auth/refresh` | Refresh access token | No |
+| `POST` | `/v1/auth/logout` | Invalidate refresh token | Yes |
+| `GET` | `/v1/auth/me` | Get current user | Yes |
+| `PUT` | `/v1/auth/user` | Update user metadata | Yes |
+
+### 📁 File Storage
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `POST` | `/v1/storage/buckets` | Create bucket | Yes |
+| `GET` | `/v1/storage/buckets` | List buckets | Yes |
+| `DELETE` | `/v1/storage/buckets/:name` | Delete bucket | Yes |
+| `POST` | `/v1/storage/object/:bucket/*path` | Upload file | Yes* |
+| `GET` | `/v1/storage/object/:bucket/*path` | Download file | Yes* |
+| `DELETE` | `/v1/storage/object/:bucket/*path` | Delete file | Yes |
+| `GET` | `/v1/storage/list/:bucket` | List files | Yes* |
+
+*Public buckets allow unauthenticated read access
 
 ## 🔧 Configuration
 
@@ -123,6 +150,8 @@ OPTIONS:
 | `VIBEDB_PATH` | Database file path |
 | `VIBEDB_HOST` | Host to bind to |
 | `VIBEDB_MEMORY` | Set to use in-memory database |
+| `VIBEDB_JWT_SECRET` | JWT signing secret (auto-generated if not set) |
+| `VIBEDB_STORAGE_PATH` | File storage directory [default: ./vibe_storage/] |
 
 ## 🛡️ Type Mapping
 

@@ -52,6 +52,24 @@ pub enum VibeError {
     /// Internal server error
     #[error("Internal error: {0}")]
     Internal(#[from] anyhow::Error),
+
+    // =========== Auth & Storage Errors ===========
+    
+    /// Authentication failed
+    #[error("Unauthorized: {0}")]
+    Unauthorized(String),
+
+    /// Resource conflict (e.g., user already exists)
+    #[error("Conflict: {0}")]
+    Conflict(String),
+
+    /// Resource not found
+    #[error("Not found: {0}")]
+    NotFound(String),
+
+    /// Storage error
+    #[error("Storage error: {0}")]
+    Storage(String),
 }
 
 impl VibeError {
@@ -67,6 +85,10 @@ impl VibeError {
             VibeError::InvalidPayload(_) => StatusCode::BAD_REQUEST,
             VibeError::MigrationFailed(_) => StatusCode::INTERNAL_SERVER_ERROR,
             VibeError::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            VibeError::Unauthorized(_) => StatusCode::UNAUTHORIZED,
+            VibeError::Conflict(_) => StatusCode::CONFLICT,
+            VibeError::NotFound(_) => StatusCode::NOT_FOUND,
+            VibeError::Storage(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 
@@ -82,6 +104,10 @@ impl VibeError {
             VibeError::InvalidPayload(_) => "INVALID_PAYLOAD",
             VibeError::MigrationFailed(_) => "MIGRATION_FAILED",
             VibeError::Internal(_) => "INTERNAL_ERROR",
+            VibeError::Unauthorized(_) => "UNAUTHORIZED",
+            VibeError::Conflict(_) => "CONFLICT",
+            VibeError::NotFound(_) => "NOT_FOUND",
+            VibeError::Storage(_) => "STORAGE_ERROR",
         }
     }
 }
